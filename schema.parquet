@@ -1,0 +1,19 @@
+message titleBasics {
+    required binary tconst (STRING);
+    required group titles (LIST){
+        repeated group title{
+            required binary type (STRING);
+            required binary primary (STRING);
+            required binary original (STRING);
+        }
+    }
+    required int32 isAdult;
+    optional int32 startYear;
+    optional int32 endYear;
+    optional int32 runtimeMinutes;
+    optional group genres (LIST){
+        repeated binary array (STRING);
+    }
+   required float averageRating;
+   required int32 numVotes;
+}

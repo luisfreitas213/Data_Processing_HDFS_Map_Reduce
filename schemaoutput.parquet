@@ -1,0 +1,11 @@
+message movieYear {
+    required binary year (STRING);
+    required int32 numFilms;
+    required binary bestMovie (STRING);
+    required group filmRank (LIST){
+        repeated group rank{
+            required binary position (STRING);
+            required binary name (STRING);
+        }
+    }
+}
