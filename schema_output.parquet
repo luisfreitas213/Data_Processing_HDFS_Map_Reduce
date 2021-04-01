@@ -6,6 +6,7 @@ message movieYear {
         repeated group rank{
             required binary position (STRING);
             required binary name (STRING);
+            required float rating;
         }
     }
 }

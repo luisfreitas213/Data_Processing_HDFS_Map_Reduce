@@ -1,5 +1,4 @@
-
-package MapReduce;
+package ToMerge;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -8,8 +7,6 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -17,7 +14,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.parquet.avro.AvroParquetOutputFormat;
 import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.schema.MessageType;
@@ -27,7 +23,7 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 
-public class toMerge {
+public class ToMerge {
 
     // Config parquet file
     public static Schema getSchema() throws IOException {
@@ -62,7 +58,8 @@ public class toMerge {
         }
         private void loadRatingsMap(URI u) throws CompressorException, IOException {
 
-
+            //Faz o decompress inserindo no BR e vai linha a linha colocar os dados no MAP;
+            //FICHEIRO EM MEMORIA
             FileInputStream fin = new FileInputStream(u.toString());
             BufferedInputStream bis = new BufferedInputStream(fin);
             CompressorInputStream input = new CompressorStreamFactory().createCompressorInputStream(bis);
@@ -71,6 +68,8 @@ public class toMerge {
             br.readLine();
             String s;
             String[] token;
+
+            //Guardar na primeira posição do filmsmap o equivalente a key do ficheiro principal
             while ((s = br.readLine()) != null){
 
                 token = s.split("\t");
@@ -79,14 +78,6 @@ public class toMerge {
                 l.add(token[2]);
                 filmsMap.put(token[0], l);
             }
-            /*int i = 1;
-            for (Map.Entry<String,List<String>> entry : filmsMap.entrySet()) {
-                //System.out.println("Key = " + entry.getKey() +
-                 //       ", Value = " + entry.getValue());
-                System.out.println(i);
-                i = i+1;
-            }
-             */
 
         }
 
@@ -134,6 +125,8 @@ public class toMerge {
                 Collections.addAll(genres, s[8].split(","));
                 record.put("genres", genres);
 
+                //PROCURA O FILME NOS DADOS EM MEMORIA, SE NÃO ENCONTRAR RETORNA ZEROS
+                //inserir rating e votos
                 if(filmsMap.get(s[0]) != null) {
                     record.put("averageRating", Float.parseFloat(filmsMap.get(s[0]).get(0)));
                     record.put("numVotes", Integer.parseInt(filmsMap.get(s[0]).get(1)));
@@ -149,26 +142,29 @@ public class toMerge {
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-        // Especificar vários parâmetros específicos do trabalho
-        Job job = Job.getInstance(new Configuration(), "toMerge");
+        // Cria um novo Job
+        Job job = Job.getInstance(new Configuration(), "ToMerge");
 
-        job.setJarByClass(toMerge.class);
+        // Especificar vários parâmetros específicos do trabalho
+        job.setJarByClass(ToMerge.class);
         job.setMapperClass(MapperSideJoin.class);
         job.setNumReduceTasks(0);
 
         //Configurar o Input
         job.addCacheFile(URI.create("/home/luis/workspace/ggcd1_dataset/title.ratings.tsv.gz"));
-
-        job.setOutputKeyClass(Void.class);
-        job.setOutputValueClass(GenericRecord.class);
-
         job.setInputFormatClass(TextInputFormat.class);
         TextInputFormat.setInputPaths(job, new Path("/home/luis/workspace/ggcd1_dataset/title.basics.tsv.gz"));
 
+        //Configurar o Output
+        job.setOutputKeyClass(Void.class);
+        job.setOutputValueClass(GenericRecord.class);
+
+        //Configurar a conversão dos dados para o ficheiro final
         job.setOutputFormatClass(AvroParquetOutputFormat.class);
         AvroParquetOutputFormat.setSchema(job,getSchema());
-        FileOutputFormat.setOutputPath(job, new Path("output"));
+        FileOutputFormat.setOutputPath(job, new Path("Output"));
 
+        // Configuração de execução
         job.waitForCompletion(true);
 
     }

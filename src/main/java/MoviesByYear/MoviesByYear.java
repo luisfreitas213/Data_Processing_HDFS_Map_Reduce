@@ -1,18 +1,13 @@
 package MoviesByYear;
 
-import com.fasterxml.jackson.databind.util.TypeKey;
-import com.google.common.collect.Maps;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.parquet.avro.AvroParquetInputFormat;
 import org.apache.parquet.avro.AvroParquetOutputFormat;
 import org.apache.parquet.avro.AvroSchemaConverter;
@@ -22,53 +17,13 @@ import org.apache.parquet.schema.MessageTypeParser;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class FromParquet {
-    // Config parquet file
-    public static Schema getSchemapro() throws IOException {
-        InputStream is = new FileInputStream("schema2.parquet");
-        String ps = new String(is.readAllBytes());
-        MessageType mt = MessageTypeParser.parseMessageType(ps);
-        return new AvroSchemaConverter().convert(mt);
-    }
-    public static Schema getSchema() throws IOException {
-        InputStream is = new FileInputStream("schemaoutput.parquet");
-        String ps = new String(is.readAllBytes());
-        MessageType mt = MessageTypeParser.parseMessageType(ps);
-        return new AvroSchemaConverter().convert(mt);
-    }
+public class MoviesByYear {
 
-    public static class FromParquetMapper extends Mapper<Void, GenericRecord, Text, Text>{
-
-
-        @Override
-        protected void map(Void key, GenericRecord value, Context context) throws IOException, InterruptedException {
-
-            //falta filtrar por movies
-            List<GenericRecord> title = (List<GenericRecord>) value.get("titles");
-            String tipologia =title.get(0).get(0).toString();
-
-            if(value.get(3)!=null && tipologia.equals("movie"))  {
-                String s = (String) value.get(0);
-                s= s+"\t"+title.get(0).get(0).toString();
-                s= s+"\t"+title.get(0).get(1).toString();
-                s= s+"\t"+title.get(0).get(2).toString();
-                s = s+"\t"+ value.get(1);
-                s = s+"\t"+ value.get(7);
-                s = s+"\t"+ value.get(8);
-
-                String ano =value.get(3).toString();
-
-                context.write(new Text(ano), new Text(s));
-            }
-        }
-
-    }
-
+    //Função que vai ser usada mais para a frente para order uma estrutura Map
     private static Map<Integer, Float> sortByValue(Map<Integer, Float> unsortMap) {
 
         // 1. Convert Map to List of Map
@@ -91,8 +46,50 @@ public class FromParquet {
             sortedMap.put(entry.getKey(), entry.getValue());
         }
 
-
         return sortedMap;
+    }
+
+    // Config parquet file projection (projetar só as colunas que queremos)
+    public static Schema getSchemapro() throws IOException {
+        InputStream is = new FileInputStream("schema_projection.parquet");
+        String ps = new String(is.readAllBytes());
+        MessageType mt = MessageTypeParser.parseMessageType(ps);
+        return new AvroSchemaConverter().convert(mt);
+    }
+    // Config parquet file output
+    public static Schema getSchema() throws IOException {
+        InputStream is = new FileInputStream("schema_output.parquet");
+        String ps = new String(is.readAllBytes());
+        MessageType mt = MessageTypeParser.parseMessageType(ps);
+        return new AvroSchemaConverter().convert(mt);
+    }
+
+    public static class FromParquetMapper extends Mapper<Void, GenericRecord, Text, Text>{
+
+        @Override
+        protected void map(Void key, GenericRecord value, Context context) throws IOException, InterruptedException {
+
+            //Criar a sub schema do schema principal
+            List<GenericRecord> title = (List<GenericRecord>) value.get("titles");
+            //Fazer a consulta ao sub schema e guardar na tipologia
+            String tipologia =title.get(0).get(0).toString();
+
+            //Filtrar só pelos filmes sem o ano a nulo
+            if(value.get(3)!=null && tipologia.equals("movie"))  {
+                //Passar o Ano para Key e tudo o resto(necessáro) como value do map
+                String s = (String) value.get(0);
+                s= s+"\t"+title.get(0).get(0).toString();
+                s= s+"\t"+title.get(0).get(1).toString();
+                s= s+"\t"+title.get(0).get(2).toString();
+                s = s+"\t"+ value.get(1);
+                s = s+"\t"+ value.get(7);
+                s = s+"\t"+ value.get(8);
+
+                String ano =value.get(3).toString();
+
+                context.write(new Text(ano), new Text(s));
+            }
+        }
     }
 
     public static class FromParquetReducer extends Reducer<Text,Text,Void, GenericRecord> {
@@ -101,7 +98,6 @@ public class FromParquet {
         private Schema tschema;
 
         //Executar a configuração do schema output
-
 
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
@@ -112,74 +108,86 @@ public class FromParquet {
 
         @Override
         protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            //variavel para guardar o numero total de filmes
             int total=0;
+            //guardar os votos do ultimo filme com mais votos
             int max_votos=0;
+            // variavel para guardar o filme com mais votos
             String movie_max_votos = null;
-            ArrayList sub_rank = new ArrayList<>();
-            ArrayList rank = new ArrayList<>();
+            //Array List para guardar o nome dos filmes
+            ArrayList <String> sub_rank = new ArrayList<>();
+            //Array list para guardar os top 10 filmes
+            ArrayList <String> rank = new ArrayList<>();
+            //Array List para guardar os valores do rank
+            ArrayList <Float> rv = new ArrayList<>();
+            //Array List para guardar os valores dos top 10 rankings
+            ArrayList <Float> rankvalues = new ArrayList<>();
+            //Map que vai ter os dados do array list ordenados
             Map<Integer, Float> RatingsMap = new HashMap<>();
-            Map<Integer, String> MoviesMap = new HashMap<>();
 
-
-            System.out.println("Ano " + key);
 
             for(Text value: values) {
+                //total de filmes nesse ano
                 total += 1;
+                //split na linha
                 String[] movie = value.toString().split("\t");
+                //numero de votos
                 int votes=Integer.parseInt(movie[6]);
+                //rating
                 float rating=Float.parseFloat(movie[5]);
+                //nome do filem
                 String movie_name = movie[3];
+                // se o maximo de votos for superado muda o pódio
                 if(votes>=max_votos)
                 {
                     movie_max_votos=movie_name;
+                    max_votos = votes;
                 }
+                //inserir os valores no map
                 RatingsMap.put(total,rating);
-                MoviesMap.put(total, movie_name);
+                //inserir os filmes
                 sub_rank.add(movie_name);
+                // inserir os ratings
+                rv.add(rating);
             }
-
+            //funcao que ordena os rankings
             RatingsMap=sortByValue(RatingsMap);
-            System.out.println(RatingsMap);
+            //guarda o indice dos top 10 filmes
             List<Integer> keys = RatingsMap.entrySet().stream()
                     .map(Map.Entry::getKey)
                     .limit(10)
                     .collect(Collectors.toList());
 
-            System.out.println(keys);
-
-            String content = "[";
-
+            //Adicionar ao Rank os principais filmes
             for (int indice:keys){
                 rank.add(sub_rank.get(indice - 1));
-            }
-            for (int i = 0; i < rank.size(); i++){
-                System.out.println(rank.get(i));
-                int j = i+1;
-                content = content + j +": "+ rank.get(i) +"; ";
+                rankvalues.add(rv.get(indice -1));
             }
 
-            content = total + " " + movie_max_votos +" "+ content+"]";
-
-            //context.write(new Text(key.toString()),new Text(content));
 
             //Insert output
+
             GenericRecord record = new GenericData.Record(schema);
             //insert year
             record.put("year", key.toString());
             //insert numFilms
             record.put("numFilms", total);
             //insert bestMovie
-            record.put("bestMovie",movie_max_votos);
+            record.put("bestMovie",movie_max_votos+ " votos: "+max_votos);
             //insert filmRank
             List<GenericRecord> filmranks = new ArrayList<>();
-            GenericRecord trecord = new GenericData.Record(tschema);
+            //INserir os top 10 filmes do ano
             for (int i = 0; i < rank.size(); i++) {
-                trecord.put("position", i + 1);
+                GenericRecord trecord = new GenericData.Record(tschema);
+                int j = i+1;
+                System.out.println(rank.get(i));
+                trecord.put("position", j);
                 trecord.put("name", rank.get(i));
+                trecord.put("rating", rankvalues.get(i));
                 filmranks.add(trecord);
+
             }
             record.put("filmRank", filmranks);
-
 
 
             //output parquet
@@ -190,28 +198,33 @@ public class FromParquet {
 
 
     public static void main(String[] args) throws Exception{
-
+        // Cria um novo Job
         Job job = Job.getInstance(new Configuration(), "FromParquet");
-        job.setJarByClass(MoviesByYear.FromParquet.class);
-        job.setMapperClass(MoviesByYear.FromParquet.FromParquetMapper.class);
-        job.setReducerClass(FromParquet.FromParquetReducer.class);
+
+        // Especificar vários parâmetros específicos do trabalho
+        job.setJarByClass(MoviesByYear.class);
+        job.setMapperClass(MoviesByYear.FromParquetMapper.class);
+        job.setReducerClass(MoviesByYear.FromParquetReducer.class);
+
+        //Configurar o Input
+        job.setInputFormatClass(AvroParquetInputFormat.class);
+        AvroParquetInputFormat.addInputPath(job, new Path("Output"));
+        AvroParquetInputFormat.setRequestedProjection(job,getSchemapro());
+
+        //Configurar o Output
+        job.setOutputKeyClass(Void.class);
+        job.setOutputValueClass(GenericRecord.class);
 
         //Configurar os tipos de dados que vão do mapper para o reduce
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
 
-        //Configurar a conversão dos dados do reduce para o ficheiro final
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
-
-        job.setInputFormatClass(AvroParquetInputFormat.class);
-        AvroParquetInputFormat.addInputPath(job, new Path("output"));
-        AvroParquetInputFormat.setRequestedProjection(job,getSchemapro());
-
+        //Configurar a conversão dos dados para o ficheiro final
         job.setOutputFormatClass(AvroParquetOutputFormat.class);
         AvroParquetOutputFormat.setSchema(job,getSchema());
         FileOutputFormat.setOutputPath(job, new Path("MoviesByYear"));
 
+        // Configuração de execução
         job.waitForCompletion(true);
     }
 }
