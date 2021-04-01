@@ -141,7 +141,7 @@ public class ToMerge {
         }
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+    public static void tomerge(String dat1, String dat2) throws IOException, ClassNotFoundException, InterruptedException {
         // Cria um novo Job
         Job job = Job.getInstance(new Configuration(), "ToMerge");
 
@@ -151,9 +151,9 @@ public class ToMerge {
         job.setNumReduceTasks(0);
 
         //Configurar o Input
-        job.addCacheFile(URI.create("/home/luis/workspace/ggcd1_dataset/title.ratings.tsv.gz"));
+        job.addCacheFile(URI.create(dat1));
         job.setInputFormatClass(TextInputFormat.class);
-        TextInputFormat.setInputPaths(job, new Path("/home/luis/workspace/ggcd1_dataset/title.basics.tsv.gz"));
+        TextInputFormat.setInputPaths(job, new Path(dat2));
 
         //Configurar o Output
         job.setOutputKeyClass(Void.class);

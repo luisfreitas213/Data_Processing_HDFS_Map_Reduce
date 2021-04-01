@@ -180,7 +180,6 @@ public class MoviesByYear {
             for (int i = 0; i < rank.size(); i++) {
                 GenericRecord trecord = new GenericData.Record(tschema);
                 int j = i+1;
-                System.out.println(rank.get(i));
                 trecord.put("position", j);
                 trecord.put("name", rank.get(i));
                 trecord.put("rating", rankvalues.get(i));
@@ -197,7 +196,7 @@ public class MoviesByYear {
     }
 
 
-    public static void main(String[] args) throws Exception{
+    public static void moviesbyyear(String dat1) throws Exception{
         // Cria um novo Job
         Job job = Job.getInstance(new Configuration(), "FromParquet");
 
@@ -208,7 +207,7 @@ public class MoviesByYear {
 
         //Configurar o Input
         job.setInputFormatClass(AvroParquetInputFormat.class);
-        AvroParquetInputFormat.addInputPath(job, new Path("Output"));
+        AvroParquetInputFormat.addInputPath(job, new Path(dat1));
         AvroParquetInputFormat.setRequestedProjection(job,getSchemapro());
 
         //Configurar o Output

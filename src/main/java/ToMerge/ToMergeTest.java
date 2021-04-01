@@ -23,7 +23,7 @@ public class ToMergeTest {
         }
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void tomergetest(String dir) throws Exception{
         // Cria um novo Job
         Job job = Job.getInstance(new Configuration(), "FromParquet");
 
@@ -34,7 +34,7 @@ public class ToMergeTest {
 
         //Configurar o Input
         job.setInputFormatClass(AvroParquetInputFormat.class);
-        AvroParquetInputFormat.addInputPath(job, new Path("Output"));
+        AvroParquetInputFormat.addInputPath(job, new Path(dir));
 
         //Configurar o Output
         job.setOutputKeyClass(Void.class);

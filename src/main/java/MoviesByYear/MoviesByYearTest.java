@@ -22,7 +22,7 @@ public class MoviesByYearTest {
         }
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void moviesbyyeartest(String dat) throws Exception{
         // Cria um novo Job
         Job job = Job.getInstance(new Configuration(), "mbyt");
 
@@ -33,7 +33,7 @@ public class MoviesByYearTest {
 
         //Configurar o Input
         job.setInputFormatClass(AvroParquetInputFormat.class);
-        AvroParquetInputFormat.addInputPath(job, new Path("MoviesByYear"));
+        AvroParquetInputFormat.addInputPath(job, new Path(dat));
 
         //Configurar o Output
         job.setOutputKeyClass(Void.class);
