@@ -41,7 +41,7 @@ public class MoviesByYearTest {
 
         //Configurar a conversão dos dados para o ficheiro final
         job.setOutputFormatClass(TextOutputFormat.class);
-        TextOutputFormat.setOutputPath(job, new Path("MoviesByYearTest"));
+        TextOutputFormat.setOutputPath(job, new Path("hdfs:///MoviesByYearTest"));
 
         job.waitForCompletion(true);
     }

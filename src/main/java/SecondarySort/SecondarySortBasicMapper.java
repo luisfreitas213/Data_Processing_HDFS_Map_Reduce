@@ -19,7 +19,7 @@ public class SecondarySortBasicMapper extends Mapper<Void, GenericRecord, Compos
 
 	// Config parquet file projection (projetar só as colunas que queremos)
 	public static Schema getSchema() throws IOException {
-		InputStream is = new FileInputStream("schema_secondary_sort.parquet");
+		InputStream is = new FileInputStream("hdfs:///schema_secondary_sort.parquet");
 		String ps = new String(is.readAllBytes());
 		MessageType mt = MessageTypeParser.parseMessageType(ps);
 		return new AvroSchemaConverter().convert(mt);

@@ -27,7 +27,7 @@ public class ToMerge {
 
     // Config parquet file
     public static Schema getSchema() throws IOException {
-        InputStream is = new FileInputStream("schema.parquet");
+        InputStream is = new FileInputStream("hdfs:///schema.parquet");
         String ps = new String(is.readAllBytes());
         MessageType mt = MessageTypeParser.parseMessageType(ps);
         return new AvroSchemaConverter().convert(mt);
@@ -162,7 +162,7 @@ public class ToMerge {
         //Configurar a conversão dos dados para o ficheiro final
         job.setOutputFormatClass(AvroParquetOutputFormat.class);
         AvroParquetOutputFormat.setSchema(job,getSchema());
-        FileOutputFormat.setOutputPath(job, new Path("Output"));
+        FileOutputFormat.setOutputPath(job, new Path("hdfs:///Output"));
 
         // Configuração de execução
         job.waitForCompletion(true);

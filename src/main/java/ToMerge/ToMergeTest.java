@@ -42,7 +42,7 @@ public class ToMergeTest {
 
         //Configurar a conversão dos dados para o ficheiro final
         job.setOutputFormatClass(TextOutputFormat.class);
-        TextOutputFormat.setOutputPath(job, new Path("ToMergeTest"));
+        TextOutputFormat.setOutputPath(job, new Path("hdfs:///ToMergeTest"));
 
         job.waitForCompletion(true);
     }

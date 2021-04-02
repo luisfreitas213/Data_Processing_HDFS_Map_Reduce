@@ -15,7 +15,7 @@ import org.apache.parquet.avro.AvroParquetInputFormat;
 
 public class SecondarySortBasicDriver {
 
-	public static void secondarysort(String input_path) throws Exception {
+	public static void secondarysort(String dir) throws Exception {
 		// Cria um novo Job
 		Job job = Job.getInstance(new Configuration());
 		job.setJobName("Secondary sort");
@@ -33,7 +33,7 @@ public class SecondarySortBasicDriver {
 
 		//Configurar o Input
 		job.setInputFormatClass(AvroParquetInputFormat.class);
-		AvroParquetInputFormat.addInputPath(job, new Path("Output"));
+		AvroParquetInputFormat.addInputPath(job, new Path(dir));
 		AvroParquetInputFormat.setRequestedProjection(job,SecondarySortBasicMapper.getSchema());
 
 		//Configurar o output do Map
@@ -46,7 +46,7 @@ public class SecondarySortBasicDriver {
 
 		//Configurar a conversão dos dados para o ficheiro final
 		job.setOutputFormatClass(TextOutputFormat.class);
-		TextOutputFormat.setOutputPath(job, new Path("SecondarySort"));
+		TextOutputFormat.setOutputPath(job, new Path("hdfs:///SecondarySort"));
 
 		job.waitForCompletion(true);
 	}

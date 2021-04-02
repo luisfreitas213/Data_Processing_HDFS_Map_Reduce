@@ -51,14 +51,14 @@ public class MoviesByYear {
 
     // Config parquet file projection (projetar só as colunas que queremos)
     public static Schema getSchemapro() throws IOException {
-        InputStream is = new FileInputStream("schema_projection.parquet");
+        InputStream is = new FileInputStream("hdfs:///schema_projection.parquet");
         String ps = new String(is.readAllBytes());
         MessageType mt = MessageTypeParser.parseMessageType(ps);
         return new AvroSchemaConverter().convert(mt);
     }
     // Config parquet file output
     public static Schema getSchema() throws IOException {
-        InputStream is = new FileInputStream("schema_output.parquet");
+        InputStream is = new FileInputStream("hdfs:///schema_output.parquet");
         String ps = new String(is.readAllBytes());
         MessageType mt = MessageTypeParser.parseMessageType(ps);
         return new AvroSchemaConverter().convert(mt);
@@ -230,7 +230,7 @@ public class MoviesByYear {
         //Configurar a conversão dos dados para o ficheiro final
         job.setOutputFormatClass(AvroParquetOutputFormat.class);
         AvroParquetOutputFormat.setSchema(job,getSchema());
-        FileOutputFormat.setOutputPath(job, new Path("MoviesByYear"));
+        FileOutputFormat.setOutputPath(job, new Path("hdfs:///MoviesByYear"));
 
         // Configuração de execução
         job.waitForCompletion(true);
