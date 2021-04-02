@@ -19,7 +19,7 @@ public class Main {
             FileUtils.deleteDirectory(new File("SecondarySort"));
         }finally { }
 
-        ToMerge.tomerge("/home/luis/workspace/ggcd1_dataset/title.ratings.tsv.gz","/home/luis/workspace/ggcd1_dataset/title.basics.tsv.gz");
+        ToMerge.tomerge("data/title.ratings.tsv.gz","data/title.basics.tsv.gz");
         MoviesByYear.moviesbyyear("Output");
         SecondarySortBasicDriver.secondarysort("Output");
 
