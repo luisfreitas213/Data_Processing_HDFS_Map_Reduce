@@ -96,6 +96,7 @@ public class MoviesByYear {
         //Declare Variables to Schema output
         private Schema schema;
         private Schema tschema;
+        private Schema mschema;
 
         //Executar a configuração do schema output
 
@@ -104,6 +105,7 @@ public class MoviesByYear {
             //Principal Schema
             schema = getSchema();
             tschema = schema.getField("filmRank").schema().getElementType();
+            mschema = schema.getField("bestMovies").schema().getElementType();
         }
 
         @Override
@@ -172,8 +174,15 @@ public class MoviesByYear {
             record.put("year", key.toString());
             //insert numFilms
             record.put("numFilms", total);
-            //insert bestMovie
-            record.put("bestMovie",movie_max_votos+ " votos: "+max_votos);
+            //insert bestMovies
+            List<GenericRecord> bestmovies = new ArrayList<>();
+            GenericRecord mrecord = new GenericData.Record(mschema);
+            mrecord.put("movie", movie_max_votos);
+            mrecord.put("votes", max_votos);
+            bestmovies.add(mrecord);
+
+            record.put("bestMovies", bestmovies);
+
             //insert filmRank
             List<GenericRecord> filmranks = new ArrayList<>();
             //INserir os top 10 filmes do ano

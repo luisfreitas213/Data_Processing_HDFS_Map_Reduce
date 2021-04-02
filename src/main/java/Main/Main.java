@@ -16,14 +16,16 @@ public class Main {
             FileUtils.deleteDirectory(new File("MoviesByYearTest"));
             FileUtils.deleteDirectory(new File("ToMergeTest"));
             FileUtils.deleteDirectory(new File("Output"));
+            FileUtils.deleteDirectory(new File("SecondarySort"));
         }finally { }
 
-        ToMerge.tomerge("Data/title.ratings.tsv.gz","Data/title.basics.tsv.gz");
+        ToMerge.tomerge("/home/luis/workspace/ggcd1_dataset/title.ratings.tsv.gz","/home/luis/workspace/ggcd1_dataset/title.basics.tsv.gz");
         MoviesByYear.moviesbyyear("Output");
         SecondarySortBasicDriver.secondarysort("Output");
+
+        /*
         MoviesByYearTest.moviesbyyeartest("MoviesByYear");
         ToMergeTest.tomergetest("Output");
-
-        //FileUtils.deleteDirectory(new File("Output"));
+         */
     }
 }
