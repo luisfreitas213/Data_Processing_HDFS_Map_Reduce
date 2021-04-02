@@ -2,6 +2,7 @@ package Main;
 
 import MoviesByYear.MoviesByYear;
 import MoviesByYear.MoviesByYearTest;
+import SecondarySort.SecondarySortBasicDriver;
 import ToMerge.ToMerge;
 import ToMerge.ToMergeTest;
 import org.apache.commons.io.FileUtils;
@@ -19,10 +20,10 @@ public class Main {
 
         ToMerge.tomerge("Data/title.ratings.tsv.gz","Data/title.basics.tsv.gz");
         MoviesByYear.moviesbyyear("Output");
+        SecondarySortBasicDriver.secondarysort("Output");
         MoviesByYearTest.moviesbyyeartest("MoviesByYear");
-
         ToMergeTest.tomergetest("Output");
 
-        FileUtils.deleteDirectory(new File("Output"));
+        //FileUtils.deleteDirectory(new File("Output"));
     }
 }
