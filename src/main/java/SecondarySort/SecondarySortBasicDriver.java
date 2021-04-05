@@ -29,7 +29,8 @@ public class SecondarySortBasicDriver {
 		job.setReducerClass(SecondarySortBasicReducer.class);
 
 		//Define o número de tarefas de Reduce a ocorrer, por omissão é 1
-		//job.setNumReduceTasks(8);
+		//29 porque é igual ao numero total de generos
+		job.setNumReduceTasks(29);
 
 		//Configurar o Input
 		job.setInputFormatClass(AvroParquetInputFormat.class);
