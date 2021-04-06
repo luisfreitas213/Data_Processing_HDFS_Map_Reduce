@@ -9,7 +9,6 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 
-import static ToMerge.ToMerge.tomerge;
 
 public class Main {
     public static void main(String[] args) throws Exception {
