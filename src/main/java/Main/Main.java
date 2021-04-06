@@ -9,6 +9,8 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 
+import static ToMerge.ToMerge.tomerge;
+
 public class Main {
     public static void main(String[] args) throws Exception {
         try {
@@ -19,9 +21,9 @@ public class Main {
             FileUtils.deleteDirectory(new File("hdfs:///SecondarySort"));
         }finally { }
 
-        ToMerge.tomerge("hdfs:///data/title.ratings.tsv.gz","hdfs:///data/title.basics.tsv.gz");
-        MoviesByYear.moviesbyyear("hdfs:///Output");
-        SecondarySortBasicDriver.secondarysort("hdfs:///Output");
+        ToMerge.tomerge("hdfs:///title.ratings.tsv.gz","hdfs:///title.basics.tsv.gz");
+        //MoviesByYear.moviesbyyear("hdfs:///Output");
+        //SecondarySortBasicDriver.secondarysort("hdfs:///Output");
 
         /*
         MoviesByYearTest.moviesbyyeartest("MoviesByYear");

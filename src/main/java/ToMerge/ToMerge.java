@@ -7,6 +7,8 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -26,10 +28,22 @@ import java.util.*;
 public class ToMerge {
 
     // Config parquet file
+    private static Configuration conf;
     public static Schema getSchema() throws IOException {
-        InputStream is = new FileInputStream("hdfs:///schema.parquet");
-        String ps = new String(is.readAllBytes());
-        MessageType mt = MessageTypeParser.parseMessageType(ps);
+        FileSystem fs = FileSystem.get(conf);
+        Path schema = new Path("hdfs:///schema.parquet");
+        FSDataInputStream in = fs.open(schema);
+
+        StringBuilder strout =new StringBuilder();
+        byte[] buffer=new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = in.read(buffer)) > 0)
+            strout.append(new String(buffer, 0, bytesRead));
+        in.close();
+
+        MessageType mt = MessageTypeParser.parseMessageType(strout.toString());
+
         return new AvroSchemaConverter().convert(mt);
     }
 
@@ -143,12 +157,15 @@ public class ToMerge {
 
     public static void tomerge(String dat1, String dat2) throws IOException, ClassNotFoundException, InterruptedException {
         // Cria um novo Job
-        Job job = Job.getInstance(new Configuration(), "ToMerge");
+        conf = new Configuration();
+        Job job = Job.getInstance(conf, "toMerge");
 
         // Especificar vários parâmetros específicos do trabalho
         job.setJarByClass(ToMerge.class);
         job.setMapperClass(MapperSideJoin.class);
         job.setNumReduceTasks(0);
+
+
 
         //Configurar o Input
         job.addCacheFile(URI.create(dat1));

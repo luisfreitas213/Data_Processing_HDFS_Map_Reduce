@@ -4,8 +4,10 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.parquet.avro.AvroParquetInputFormat;
@@ -50,17 +52,40 @@ public class MoviesByYear {
     }
 
     // Config parquet file projection (projetar só as colunas que queremos)
-    public static Schema getSchemapro() throws IOException {
-        InputStream is = new FileInputStream("hdfs:///schema_projection.parquet");
-        String ps = new String(is.readAllBytes());
-        MessageType mt = MessageTypeParser.parseMessageType(ps);
+    private static Configuration conf;
+    public static  Schema getSchemapro() throws IOException {
+        FileSystem fs = FileSystem.get(conf);
+        Path schema = new Path("hdfs:///schema_projection.parquet");
+        FSDataInputStream in = fs.open(schema);
+
+        StringBuilder strout =new StringBuilder();
+        byte[] buffer=new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = in.read(buffer)) > 0)
+            strout.append(new String(buffer, 0, bytesRead));
+        in.close();
+
+        MessageType mt = MessageTypeParser.parseMessageType(strout.toString());
+
         return new AvroSchemaConverter().convert(mt);
     }
     // Config parquet file output
-    public static Schema getSchema() throws IOException {
-        InputStream is = new FileInputStream("hdfs:///schema_output.parquet");
-        String ps = new String(is.readAllBytes());
-        MessageType mt = MessageTypeParser.parseMessageType(ps);
+    public static  Schema getSchema() throws IOException {
+        FileSystem fs = FileSystem.get(conf);
+        Path schema = new Path("hdfs:///schema_output.parquet");
+        FSDataInputStream in = fs.open(schema);
+
+        StringBuilder strout =new StringBuilder();
+        byte[] buffer=new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = in.read(buffer)) > 0)
+            strout.append(new String(buffer, 0, bytesRead));
+        in.close();
+
+        MessageType mt = MessageTypeParser.parseMessageType(strout.toString());
+
         return new AvroSchemaConverter().convert(mt);
     }
 
@@ -207,7 +232,8 @@ public class MoviesByYear {
 
     public static void moviesbyyear(String dat1) throws Exception{
         // Cria um novo Job
-        Job job = Job.getInstance(new Configuration(), "FromParquet");
+        conf = new Configuration();
+        Job job = Job.getInstance(conf , "FromParquet");
 
         // Especificar vários parâmetros específicos do trabalho
         job.setJarByClass(MoviesByYear.class);

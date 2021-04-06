@@ -6,6 +6,10 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -18,10 +22,22 @@ import org.apache.parquet.schema.MessageTypeParser;
 public class SecondarySortBasicMapper extends Mapper<Void, GenericRecord, CompositeKeyWritable, Text> {
 
 	// Config parquet file projection (projetar só as colunas que queremos)
-	public static Schema getSchema() throws IOException {
-		InputStream is = new FileInputStream("hdfs:///schema_secondary_sort.parquet");
-		String ps = new String(is.readAllBytes());
-		MessageType mt = MessageTypeParser.parseMessageType(ps);
+	private static Configuration conf;
+	public static  Schema getSchema() throws IOException {
+		FileSystem fs = FileSystem.get(conf);
+		Path schema = new Path("hdfs:///schema_secondary_sort.parquet");
+		FSDataInputStream in = fs.open(schema);
+
+		StringBuilder strout =new StringBuilder();
+		byte[] buffer=new byte[4096];
+		int bytesRead;
+
+		while ((bytesRead = in.read(buffer)) > 0)
+			strout.append(new String(buffer, 0, bytesRead));
+		in.close();
+
+		MessageType mt = MessageTypeParser.parseMessageType(strout.toString());
+
 		return new AvroSchemaConverter().convert(mt);
 	}
 

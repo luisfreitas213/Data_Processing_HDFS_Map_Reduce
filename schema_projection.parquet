@@ -1,10 +1,10 @@
 message titleBasics {
-    required binary tconst (STRING);
+    required binary tconst (UTF8);
     required group titles (LIST){
         repeated group title{
-            required binary type (STRING);
-            required binary primary (STRING);
-            required binary original (STRING);
+            required binary type (UTF8);
+            required binary primary (UTF8);
+            required binary original (UTF8);
         }
     }
     optional int32 startYear;
