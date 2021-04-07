@@ -12,15 +12,9 @@ import java.io.File;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        try {
-            FileUtils.deleteDirectory(new File("hdfs:///MoviesByYear"));
-            FileUtils.deleteDirectory(new File("hdfs:///MoviesByYearTest"));
-            FileUtils.deleteDirectory(new File("hdfs:///ToMergeTest"));
-            FileUtils.deleteDirectory(new File("hdfs:///Output"));
-            FileUtils.deleteDirectory(new File("hdfs:///SecondarySort"));
-        }finally { }
 
-        ToMerge.tomerge("hdfs:///title.ratings.tsv.gz","hdfs:///title.basics.tsv.gz");
+
+        ToMerge.tomerge();
         //MoviesByYear.moviesbyyear("hdfs:///Output");
         //SecondarySortBasicDriver.secondarysort("hdfs:///Output");
 

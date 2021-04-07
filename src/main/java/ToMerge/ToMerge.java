@@ -16,6 +16,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.yarn.api.records.URL;
 import org.apache.parquet.avro.AvroParquetOutputFormat;
 import org.apache.parquet.avro.AvroSchemaConverter;
 import org.apache.parquet.schema.MessageType;
@@ -23,29 +24,31 @@ import org.apache.parquet.schema.MessageTypeParser;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 public class ToMerge {
 
     // Config parquet file
-    private static Configuration conf;
-    public static Schema getSchema() throws IOException {
-        FileSystem fs = FileSystem.get(conf);
-        Path schema = new Path("hdfs:///schema.parquet");
-        FSDataInputStream in = fs.open(schema);
+        private static Configuration conf;
+        public static  Schema getSchema() throws IOException {
+            FileSystem fs = FileSystem.get(new Configuration());
+            Path schema = new Path("hdfs:///schema.parquet");
+            FSDataInputStream in = fs.open(schema);
 
-        StringBuilder strout =new StringBuilder();
-        byte[] buffer=new byte[4096];
-        int bytesRead;
+            StringBuilder strout =new StringBuilder();
+            byte[] buffer=new byte[4096];
+            int bytesRead;
 
-        while ((bytesRead = in.read(buffer)) > 0)
-            strout.append(new String(buffer, 0, bytesRead));
-        in.close();
+            while ((bytesRead = in.read(buffer)) > 0)
+                strout.append(new String(buffer, 0, bytesRead));
+            in.close();
 
-        MessageType mt = MessageTypeParser.parseMessageType(strout.toString());
+            MessageType mt = MessageTypeParser.parseMessageType(strout.toString());
 
-        return new AvroSchemaConverter().convert(mt);
-    }
+            return new AvroSchemaConverter().convert(mt);
+        }
+
 
     public static class MapperSideJoin extends Mapper<LongWritable, Text, Void, GenericRecord> {
         //Declare Schema and tschema
@@ -155,10 +158,10 @@ public class ToMerge {
         }
     }
 
-    public static void tomerge(String dat1, String dat2) throws IOException, ClassNotFoundException, InterruptedException {
+    public static void tomerge() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
         // Cria um novo Job
-        conf = new Configuration();
-        Job job = Job.getInstance(conf, "toMerge");
+
+        Job job = Job.getInstance(new Configuration(), "toMerge");
 
         // Especificar vários parâmetros específicos do trabalho
         job.setJarByClass(ToMerge.class);
@@ -168,9 +171,9 @@ public class ToMerge {
 
 
         //Configurar o Input
-        job.addCacheFile(URI.create(dat1));
+        job.addCacheFile( new URI("hdfs:///title.ratings.tsv"));
         job.setInputFormatClass(TextInputFormat.class);
-        TextInputFormat.setInputPaths(job, new Path(dat2));
+        TextInputFormat.setInputPaths(job, new Path("hdfs:///title.basics.tsv"));
 
         //Configurar o Output
         job.setOutputKeyClass(Void.class);
