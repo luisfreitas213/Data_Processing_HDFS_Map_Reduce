@@ -15,7 +15,7 @@ import org.apache.parquet.avro.AvroParquetInputFormat;
 
 public class SecondarySortBasicDriver {
 
-	public static void secondarysort(String dir) throws Exception {
+	public static void secondarysort(String input_path) throws Exception {
 		// Cria um novo Job
 		Job job = Job.getInstance(new Configuration());
 		job.setJobName("Secondary sort");
@@ -29,11 +29,12 @@ public class SecondarySortBasicDriver {
 		job.setReducerClass(SecondarySortBasicReducer.class);
 
 		//Define o número de tarefas de Reduce a ocorrer, por omissão é 1
-		//job.setNumReduceTasks(8);
+		//29 porque é igual ao numero total de generos
+		job.setNumReduceTasks(29);
 
 		//Configurar o Input
 		job.setInputFormatClass(AvroParquetInputFormat.class);
-		AvroParquetInputFormat.addInputPath(job, new Path(dir));
+		AvroParquetInputFormat.addInputPath(job, new Path("hdfs:///Output"));
 		AvroParquetInputFormat.setRequestedProjection(job,SecondarySortBasicMapper.getSchema());
 
 		//Configurar o output do Map

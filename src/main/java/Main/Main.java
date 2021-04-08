@@ -15,8 +15,8 @@ public class Main {
 
 
         ToMerge.tomerge();
-        //MoviesByYear.moviesbyyear("hdfs:///Output");
-        //SecondarySortBasicDriver.secondarysort("hdfs:///Output");
+        MoviesByYear.moviesbyyear("hdfs:///Output");
+        SecondarySortBasicDriver.secondarysort("hdfs:///Output");
 
         /*
         MoviesByYearTest.moviesbyyeartest("MoviesByYear");

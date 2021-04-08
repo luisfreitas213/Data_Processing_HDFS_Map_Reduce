@@ -77,11 +77,9 @@ public class ToMerge {
 
             //Faz o decompress inserindo no BR e vai linha a linha colocar os dados no MAP;
             //FICHEIRO EM MEMORIA
-            FileInputStream fin = new FileInputStream(u.toString());
-            BufferedInputStream bis = new BufferedInputStream(fin);
-            CompressorInputStream input = new CompressorStreamFactory().createCompressorInputStream(bis);
-            BufferedReader br = new BufferedReader(new InputStreamReader(input));
-
+            Path pt = new Path(u.getPath());
+            FileSystem fs = FileSystem.get(new Configuration());
+            BufferedReader br = new BufferedReader(new InputStreamReader(fs.open(pt)));
             br.readLine();
             String s;
             String[] token;

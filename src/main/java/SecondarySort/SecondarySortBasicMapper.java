@@ -24,7 +24,7 @@ public class SecondarySortBasicMapper extends Mapper<Void, GenericRecord, Compos
 	// Config parquet file projection (projetar só as colunas que queremos)
 	private static Configuration conf;
 	public static  Schema getSchema() throws IOException {
-		FileSystem fs = FileSystem.get(conf);
+		FileSystem fs = FileSystem.get(new Configuration());
 		Path schema = new Path("hdfs:///schema_secondary_sort.parquet");
 		FSDataInputStream in = fs.open(schema);
 
