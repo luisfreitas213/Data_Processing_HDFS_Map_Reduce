@@ -22,6 +22,8 @@ public class Main {
         ToMerge.tomerge("data/title.ratings.tsv.gz","data/title.basics.tsv.gz");
         MoviesByYear.moviesbyyear("Output");
         SecondarySortBasicDriver.secondarysort("Output");
+        MoviesByYearTest.moviesbyyeartest("MoviesByYear");
+        ToMergeTest.tomergetest("Output");
 
         /*
         MoviesByYearTest.moviesbyyeartest("MoviesByYear");
