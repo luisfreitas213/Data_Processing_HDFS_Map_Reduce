@@ -14,9 +14,15 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
 
+
         ToMerge.tomerge();
         MoviesByYear.moviesbyyear("hdfs:///Output");
         SecondarySortBasicDriver.secondarysort("hdfs:///Output");
+
+        ToMerge.tomerge();
+        MoviesByYear.moviesbyyear("Output");
+        SecondarySortBasicDriver.secondarysort("Output");
+
 
         /*
         MoviesByYearTest.moviesbyyeartest("MoviesByYear");
