@@ -7,7 +7,7 @@ import java.util.*;
 
 public class query {
 
-    //itera pela lista de genres duma decada, agrupa os generos e conta-os
+    //itera pela lista de genres duma decada, agrupa por generos e conta-os
     private static Iterable<Tuple2<String, Integer>> countGenrePerDecade(Iterable<String> p) {
 
         Map<String,Integer> map = new HashMap<>();
@@ -81,12 +81,13 @@ public class query {
                     else
                         return Collections.emptyIterator();
                 })//(ano,genre)
-                .groupByKey()
-                .mapValues(query::countGenrePerDecade)
-                .mapValues(query::getBestGenreDecade)
+                .groupByKey()//(ano,[genre, genre, genre...])
+                .mapValues(query::countGenrePerDecade)//(ano,[(genre, genrecount),(ano,genrecount)...])
+                .mapValues(query::getBestGenreDecade)//(ano,(genre,genrecount))
                 .sortByKey()
                 .collect()
                 ;
+                
         //---------------------------------------------seasonHits----------------------------------------------
 
         List<Tuple2<String, Tuple2<String, Float>>> seasonHits = titleBasics.join(filmRatings) //(tt...,((nome filme, ano),rating))
