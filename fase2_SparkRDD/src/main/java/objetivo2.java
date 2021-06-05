@@ -5,7 +5,7 @@ import scala.Tuple2;
 
 import java.util.*;
 
-public class query {
+public class objetivo2 {
 
     //itera pela lista de genres duma decada, agrupa por generos e conta-os
     private static Iterable<Tuple2<String, Integer>> countGenrePerDecade(Iterable<String> p) {
@@ -48,46 +48,44 @@ public class query {
         SparkConf conf = new SparkConf().setMaster("local").setAppName("g4spark");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
-        final String fileDir = "file:////home/mcmaia/GGCD/dados/mini/";
-
-        JavaPairRDD<String, String> actorsNames = sc.textFile(fileDir + "name.basics.tsv.bz2")
+        JavaPairRDD<String, String> actorsNames = sc.textFile("name.basics/part-00000")
                 .map(l -> l.split("\t"))
                 .filter(l -> !l[0].equals("nconst"))
                 .mapToPair(l -> new Tuple2<>(l[0], l[1])) //identificador do ator, nome do ator
                 .cache()
                 ;
 
-        JavaPairRDD<String, String> filmRatings = sc.textFile(fileDir + "title.ratings.tsv.bz2")
+        JavaPairRDD<String, String> filmRatings = sc.textFile("title.ratings/part-00000")
                 .map(l -> l.split("\t"))
                 .filter(l -> !l[0].equals("tconst"))
                 .mapToPair(l -> new Tuple2<>(l[0], l[1]))//identificador do filme, rating do filme
                 .cache()
                 ;
 
-        JavaPairRDD<String, Tuple2<String, String>> titleBasics = sc.textFile(fileDir + "title.basics.tsv.bz2")
+        JavaPairRDD<String, Tuple2<String, String>> titleBasics = sc.textFile("title.basics/part-00000")
                 .map(l -> l.split("\t"))
                 .filter(l -> !l[0].equals("tconst"))
-                .mapToPair(l -> new Tuple2<>(l[0], new Tuple2<>(l[3],l[5])))//identificador do filme, (nome do filme, ano)
+                .mapToPair(l -> new Tuple2<>(l[0], new Tuple2<>(l[1],l[2])))//identificador do filme, (nome do filme, ano)
                 .cache()
                 ;
 
         //---------------------------------------------topGenres----------------------------------------------
 
-        List<Tuple2<Integer, Tuple2<String, Integer>>> topGenres = sc.textFile(fileDir + "title.basics.tsv.bz2")
+        List<Tuple2<Integer, Tuple2<String, Integer>>> topGenres = sc.textFile("title.basics/part-00000")
                 .flatMapToPair(l -> {
                     String[] f = l.split("\t");
-                    if (!f[0].equals("tconst") && !f[5].equals("\\N"))// && !f[8].equals("\\N"))
-                        return Arrays.stream(f[8].split(",")).map(g -> new Tuple2<>(round(Integer.parseInt(f[5])),g)).iterator();
+                    if (!f[0].equals("tconst") && !f[2].equals("\\N"))
+                        return Arrays.stream(f[3].split(",")).map(g -> new Tuple2<>(round(Integer.parseInt(f[2])),g)).iterator();
                     else
                         return Collections.emptyIterator();
                 })//(ano,genre)
                 .groupByKey()//(ano,[genre, genre, genre...])
-                .mapValues(query::countGenrePerDecade)//(ano,[(genre, genrecount),(ano,genrecount)...])
-                .mapValues(query::getBestGenreDecade)//(ano,(genre,genrecount))
+                .mapValues(objetivo2::countGenrePerDecade)//(ano,[(genre, genrecount),(ano,genrecount)...])
+                .mapValues(objetivo2::getBestGenreDecade)//(ano,(genre,genrecount))
                 .sortByKey()
                 .collect()
                 ;
-                
+
         //---------------------------------------------seasonHits----------------------------------------------
 
         List<Tuple2<String, Tuple2<String, Float>>> seasonHits = titleBasics.join(filmRatings) //(tt...,((nome filme, ano),rating))
@@ -103,7 +101,7 @@ public class query {
 
         //----------------------Top 10 atores que participam em mais titulos diferentes------------------------
 
-        List<Tuple2<Tuple2<String, String>, Integer>> top10s = sc.textFile(fileDir + "title.principals.tsv.bz2")
+        List<Tuple2<Tuple2<String, String>, Integer>> top10s = sc.textFile("title.principals/part-00000")
                 .map(l -> l.split("\t"))
                 .filter(l -> !l[0].equals("tconst") && !l[2].equals("\\N"))
                 .mapToPair(l -> new Tuple2<>(l[2], 1))//(identificador do ator, 1)

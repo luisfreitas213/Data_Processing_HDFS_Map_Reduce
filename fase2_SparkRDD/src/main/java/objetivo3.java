@@ -10,7 +10,7 @@ import java.util.List;
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.collect_list;
 
-public class query2 {
+public class objetivo3 {
 
     public static Dataset<Row> base(SparkSession spark, Dataset<Row> title_basics, Dataset<Row> title_ratings, Dataset<Row> title_principal, Dataset<Row> name_basics){
         //Base:Nome, idade, número de títulos em que participou, intervalo de anos de atividade eclassificação média dos títulos em que participa.
@@ -128,13 +128,13 @@ public class query2 {
                 .getOrCreate();
 
         //Leitura dos dados armazenamos na alinea 1 em .csv
-        Dataset<Row> title_basics = spark.read().format("csv").option("header", "true").option("delimiter", ";").load("title.basics.csv");
+        Dataset<Row> title_basics = spark.read().format("csv").option("header", "true").option("delimiter", "\t").load("title.basics");
 
-        Dataset<Row> title_ratings = spark.read().format("csv").option("header", "true").option("delimiter", ";").load("title.ratings.csv");
+        Dataset<Row> title_ratings = spark.read().format("csv").option("header", "true").option("delimiter", "\t").load("title.ratings");
 
-        Dataset<Row> title_principal = spark.read().format("csv").option("header", "true").option("delimiter", ";").load("title.principals.csv");
+        Dataset<Row> title_principal = spark.read().format("csv").option("header", "true").option("delimiter", "\t").load("title.principals");
 
-        Dataset<Row> name_basics = spark.read().format("csv").option("header", "true").option("delimiter", ";").load("name.basics.csv");
+        Dataset<Row> name_basics = spark.read().format("csv").option("header", "true").option("delimiter", "\t").load("name.basics");
 
         System.out.println("--------------------------------Schema do title_basics--------------------------------");
         title_basics.printSchema();
@@ -190,6 +190,8 @@ public class query2 {
 
         //guardar os dados no formato parquet
         data.write().parquet("result.parquet");
+
+        data.printSchema();
 
         data.show();
 
